@@ -4,7 +4,6 @@ require 'net/https'
 require 'base64'
 require 'json'
 require 'encrypted_strings'
-
 # This is an example token swap service written
 # as a Ruby/Sinatra service. This is required by
 # the iOS SDK to authenticate a user.
@@ -84,8 +83,8 @@ post '/swap' do
     if response.code.to_i == 200
         token_data = JSON.parse(response.body)
         refresh_token = token_data["refresh_token"]
-#        encrypted_token = refresh_token.encrypt(:symmetric, :password => ENCRYPTION_SECRET)
-        token_data["refresh_token"] = refresh_token
+        encrypted_token = refresh_token.encrypt(:symmetric, :password => ENCRYPTION_SECRET)
+        token_data["refresh_token"] = encrypted_token
         response.body = JSON.dump(token_data)
     end
 
@@ -105,8 +104,8 @@ post '/refresh' do
     request.add_field("Authorization", AUTH_HEADER)
 
     encrypted_token = params[:refresh_token]
-#    refresh_token = encrypted_token.decrypt(:symmetric, :password => ENCRYPTION_SECRET)
-    refresh_token = encrypted_token
+    refresh_token = encrypted_token.decrypt(:symmetric, :password => ENCRYPTION_SECRET)
+    refresh_token = refresh_token
     request.form_data = {
         "grant_type" => "refresh_token",
         "refresh_token" => refresh_token
